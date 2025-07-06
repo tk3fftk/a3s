@@ -6,7 +6,11 @@ import {StatusBar} from './ui/StatusBar.js';
 
 type Screen = 'home' | 'ec2' | 's3' | 'lambda' | 'rds';
 
-export default function App() {
+interface AppProps {
+	onExit?: () => void;
+}
+
+export default function App({onExit}: AppProps = {}) {
 	const [currentScreen, setCurrentScreen] = useState<Screen>('home');
 	const [selectedIndex, setSelectedIndex] = useState(0);
 	const [shouldQuit, setShouldQuit] = useState(false);
@@ -32,7 +36,11 @@ export default function App() {
 	};
 
 	const handleQuit = () => {
-		setShouldQuit(true);
+		if (onExit) {
+			onExit();
+		} else {
+			setShouldQuit(true);
+		}
 	};
 
 	if (typeof process !== 'undefined' && process.env['NODE_ENV'] !== 'test') {

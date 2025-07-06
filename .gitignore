@@ -11,3 +11,5 @@ dist
 
 # LocalStack temporary data
 tmp/
+
+ink/

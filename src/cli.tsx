@@ -40,6 +40,6 @@ if (cli.flags.profile) {
 	process.env['AWS_PROFILE'] = cli.flags.profile;
 }
 
-const {waitUntilExit} = render(<App />);
+const {waitUntilExit, unmount} = render(<App onExit={() => unmount()} />);
 
 await waitUntilExit();
