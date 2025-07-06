@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Text} from 'ink';
+import {Box, Text, useInput} from 'ink';
 import {Table, type TableColumn} from './Table.js';
 import type {EC2Instance} from '../types/resources.js';
 
@@ -26,7 +26,7 @@ export function ResourceList({
 	data,
 	selectedIndex = -1,
 	loading = false,
-	onBack: _onBack,
+	onBack,
 }: ResourceListProps) {
 	const getResourceTitle = (type: string) => {
 		switch (type) {
@@ -51,6 +51,16 @@ export function ResourceList({
 				return ec2Columns; // Default to EC2 for now
 		}
 	};
+
+	if (typeof process !== 'undefined' && process.env['NODE_ENV'] !== 'test') {
+		useInput((_input, key) => {
+			if (key.leftArrow || key.escape) {
+				if (onBack) {
+					onBack();
+				}
+			}
+		});
+	}
 
 	return (
 		<Box flexDirection="column" padding={1}>
