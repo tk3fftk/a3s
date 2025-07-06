@@ -15,7 +15,14 @@
 		"lint": "oxlint",
 		"lint:fix": "prettier --write . && oxlint --fix",
 		"format": "prettier --write .",
-		"format:check": "prettier --check ."
+		"format:check": "prettier --check .",
+		"docker:build": "docker compose build",
+		"docker:up": "docker compose up",
+		"docker:up:detached": "docker compose up -d",
+		"docker:down": "docker compose down",
+		"docker:logs": "docker compose logs -f",
+		"docker:logs:a3s": "docker compose logs -f a3s",
+		"docker:restart": "docker compose restart a3s"
 	},
 	"files": [
 		"dist"

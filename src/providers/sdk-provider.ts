@@ -11,9 +11,21 @@ export class SdkProvider implements Provider {
 	private ec2Client: EC2Client;
 
 	constructor() {
-		this.ec2Client = new EC2Client({
+		const config: any = {
 			region: process.env['AWS_DEFAULT_REGION'] || 'us-east-1',
-		});
+		};
+
+		// LocalStack endpoint configuration
+		if (process.env['AWS_ENDPOINT_URL']) {
+			config.endpoint = process.env['AWS_ENDPOINT_URL'];
+			config.forcePathStyle = true; // Required for LocalStack S3
+			config.credentials = {
+				accessKeyId: process.env['AWS_ACCESS_KEY_ID'] || 'test',
+				secretAccessKey: process.env['AWS_SECRET_ACCESS_KEY'] || 'test',
+			};
+		}
+
+		this.ec2Client = new EC2Client(config);
 	}
 
 	async listEC2(): Promise<EC2Instance[]> {

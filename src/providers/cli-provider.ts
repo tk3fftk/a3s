@@ -8,13 +8,28 @@ import {
 import {Provider, NotImplementedYet} from './types.js';
 
 export class CliProvider implements Provider {
+	private buildAwsCommand(
+		service: string,
+		operation: string,
+		extraArgs: string[] = [],
+	): string[] {
+		const args = [service, operation];
+
+		// Add LocalStack endpoint if configured
+		if (process.env['AWS_ENDPOINT_URL']) {
+			args.push('--endpoint-url', process.env['AWS_ENDPOINT_URL']);
+		}
+
+		args.push(...extraArgs);
+		return args;
+	}
+
 	async listEC2(): Promise<EC2Instance[]> {
-		const result = await execa('aws', [
-			'ec2',
-			'describe-instances',
+		const args = this.buildAwsCommand('ec2', 'describe-instances', [
 			'--output',
 			'json',
 		]);
+		const result = await execa('aws', args);
 
 		const response = JSON.parse(result.stdout);
 		const instances: EC2Instance[] = [];

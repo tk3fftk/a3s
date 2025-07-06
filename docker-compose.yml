@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  localstack:
+    container_name: a3s-localstack
+    image: localstack/localstack:latest
+    ports:
+      - '4566:4566' # LocalStack Gateway
+      - '4510-4559:4510-4559' # Additional service ports
+    environment:
+      - SERVICES=${SERVICES:-ec2,s3,lambda,rds}
+      - DEBUG=${DEBUG:-1}
+      - DATA_DIR=${DATA_DIR:-/var/lib/localstack/data}
+      - HOST_TMP_FOLDER=./tmp/localstack
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - './tmp/localstack:/var/lib/localstack'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    env_file:
+      - .env
+    networks:
+      - a3s-network
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:4566/_localstack/health']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  a3s:
+    container_name: a3s-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      localstack:
+        condition: service_healthy
+    environment:
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+      - A3S_BACKEND=auto
+    networks:
+      - a3s-network
+    stdin_open: true # Enable interactive input
+    tty: true # Enable TTY for proper terminal
+
+networks:
+  a3s-network:
+    driver: bridge
