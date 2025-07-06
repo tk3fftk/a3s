@@ -6,9 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Build**: `npm run build` - Compiles TypeScript to JavaScript in the `dist/` directory
 - **Development**: `npm run dev` - Runs TypeScript compiler in watch mode
-- **Test**: `npm run test` - Runs the full test suite (Prettier, oxlint, and AVA tests)
-- **Test Watch**: `npm run test:watch` - Runs tests in watch mode for TDD
-- **Single test**: `npx ava <test-file>` - Run a specific test file
+- **Test**: `npm run test` - Runs the full test suite (Prettier, oxlint, and Vitest tests)
+- **Test Watch**: `npm run test:watch` - Runs tests in watch mode for TDD with Vitest
+- **Single test**: `npx vitest run <test-file>` - Run a specific test file
 - **Lint**: `npm run lint` - Run oxlint to check code quality
 - **Lint Fix**: `npm run lint:fix` - Auto-fix linting issues where possible
 
@@ -22,7 +22,8 @@ This is a k9s-like AWS resource browsing TUI built with:
 - **AWS SDK v3**: Primary backend for AWS API calls
 - **AWS CLI**: Fallback backend via execa
 - **TypeScript**: All source code is in TypeScript with ES modules
-- **Jest**: Test framework with TypeScript support
+- **Vitest**: Modern test framework with fast watch mode and esbuild
+- **ink-testing-library**: Testing utilities for Ink components
 - **ink-table**: Table display component
 
 ### Code Structure
@@ -38,14 +39,16 @@ This is a k9s-like AWS resource browsing TUI built with:
 ### TDD Development Rules
 
 **MUST FOLLOW TDD CYCLE:**
+
 1. **Red**: Write failing test first
 2. **Green**: Write minimal code to pass test
 3. **Refactor**: Improve code while keeping tests green
 
 **Key Principles:**
+
 - Never write implementation code without a failing test
 - Each commit must have all tests passing
-- Use `npm run test:watch` for continuous feedback
+- Use `npm run test:watch` for continuous feedback with Vitest
 - Write tests for all Provider implementations, UI components, and business logic
 
 ### Key Technical Details

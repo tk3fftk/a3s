@@ -1,0 +1,7 @@
+{
+	"rules": {
+		"quotes": "off",
+		"semi": "off",
+		"indent": "off"
+	}
+}

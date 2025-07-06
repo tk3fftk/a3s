@@ -1,11 +1,13 @@
 # a3s MVP Implementation Plan
 
 ## 概要
-k9s ライクな AWS リソース閲覧 TUI。ハイブリッド・バックエンド方式（AWS SDK v3 + AWS CLI フォールバック）でMVP実装。
+
+k9s ライクな AWS リソース閲覧 TUI。ハイブリッド・バックエンド方式（AWS SDK v3 + AWS CLI フォールバック）で MVP 実装。
 
 ## アーキテクチャ設計
 
 ### 1. プロジェクト構造
+
 ```
 src/
 ├── cli.tsx              # エントリーポイント
@@ -31,57 +33,64 @@ src/
 ### 2. 主要インターフェース
 
 #### Provider インターフェース
+
 ```typescript
 interface Provider {
-  listEC2(): Promise<EC2Instance[]>;
-  listS3(): Promise<S3Bucket[]>;
-  listLambda(): Promise<LambdaFunction[]>;
-  listRDS(): Promise<RDSInstance[]>;
+	listEC2(): Promise<EC2Instance[]>;
+	listS3(): Promise<S3Bucket[]>;
+	listLambda(): Promise<LambdaFunction[]>;
+	listRDS(): Promise<RDSInstance[]>;
 }
 ```
 
 #### リソース型
+
 ```typescript
 interface EC2Instance {
-  id: string;
-  name: string;
-  state: string;
-  type: string;
-  publicIp?: string;
-  privateIp?: string;
+	id: string;
+	name: string;
+	state: string;
+	type: string;
+	publicIp?: string;
+	privateIp?: string;
 }
 
 interface S3Bucket {
-  name: string;
-  region: string;
-  creationDate: string;
+	name: string;
+	region: string;
+	creationDate: string;
 }
 ```
 
 ### 3. バックエンド戦略
 
 #### SdkProvider
+
 - AWS SDK v3 を使用
 - 未実装 API は `NotImplementedYet` エラーを throw
 
 #### CliProvider
+
 - execa で AWS CLI を実行
 - `aws ec2 describe-instances --output json` など
 - stdout を JSON.parse して結果を返す
 
 #### Factory パターン
+
 - 環境変数 `A3S_BACKEND` で選択
 - `auto` モードでは SDK → CLI へフォールバック
 
 ### 4. UI 設計
 
 #### 画面遷移
+
 1. Home 画面（EC2, S3, Lambda, RDS メニュー）
 2. ↑↓ / j k で選択、Enter でリスト画面
 3. リスト画面（テーブル表示、フィルタ機能）
 4. q で戻る
 
 #### キーバインド
+
 - `↑↓` / `j k`: 選択移動
 - `Enter`: 画面遷移
 - `/`: フィルタ入力
@@ -92,6 +101,7 @@ interface S3Bucket {
 - `:profile profile-name` + Enter: 直接プロファイル切り替え
 
 #### ステータスバー
+
 - `Backend: SDK|CLI|SDK+CLI` 表示
 - 現在の画面名
 - 更新時刻
@@ -99,6 +109,7 @@ interface S3Bucket {
 - AWS プロファイル名
 
 ### 5. 環境変数
+
 - `A3S_BACKEND=sdk|cli|auto` (デフォルト: auto)
 - `AWS_PROFILE`: AWS プロファイル
 - `COLOR_BLIND=1`: カラーブラインド対応
@@ -110,11 +121,14 @@ interface S3Bucket {
 ## 実装タスク
 
 ### Phase 1: 基盤実装
+
 1. **依存関係更新**
-   - AWS SDK v3, execa, ink-table, jest 追加
-   - 既存の AVA から Jest へ移行
+
+   - AWS SDK v3, execa, ink-table 追加
+   - Vitest テストフレームワーク採用（高速ウォッチ・esbuild）
 
 2. **Provider 実装**
+
    - `Provider` インターフェース定義
    - `SdkProvider` 実装（EC2 のみ）
    - `CliProvider` 実装（EC2, S3）
@@ -126,16 +140,20 @@ interface S3Bucket {
    - ステータスバー
 
 ### Phase 2: 機能実装
+
 1. **Home 画面**
+
    - サービス一覧表示
    - 選択機能
 
 2. **リソース一覧画面**
+
    - テーブル表示
    - フィルタ機能
-   - 自動更新（10秒）
+   - 自動更新（10 秒）
 
 3. **プロファイル切り替え機能**
+
    - AWS プロファイル一覧表示
    - 実行時プロファイル切り替え
    - ステータスバーへのアカウント ID・プロファイル名表示
@@ -145,7 +163,9 @@ interface S3Bucket {
    - Provider フォールバック
 
 ### Phase 3: テスト・文書化
+
 1. **テスト実装**
+
    - Provider 切替テスト
    - UI スナップショットテスト
 
@@ -157,16 +177,19 @@ interface S3Bucket {
 ## 技術的考慮事項
 
 ### パフォーマンス
+
 - useResources フックで効率的な状態管理
-- 10秒自動更新のメモリリーク防止
+- 10 秒自動更新のメモリリーク防止
 - 大量データの仮想化（将来対応）
 
 ### エラーハンドリング
+
 - 認証エラー、権限エラーの適切な表示
 - ネットワークエラー時の再試行
 - CLI 未インストール時の警告
 
 ### 拡張性
+
 - 新サービス追加の容易さ
 - カスタムフィルタ機能
 - 設定ファイル対応（将来）
@@ -174,12 +197,15 @@ interface S3Bucket {
 ## TDD 開発ルール
 
 ### 必須ルール
+
 1. **Red-Green-Refactor サイクル厳守**
+
    - 失敗するテストを書く (Red)
    - 最小限のコードで通す (Green)
    - リファクタリング (Refactor)
 
 2. **テストファースト**
+
    - 実装コードを書く前に必ずテストを書く
    - テストが通らない限り実装を進めない
 
@@ -188,6 +214,7 @@ interface S3Bucket {
    - 各コミットは必ずテストが通る状態
 
 ### テスト戦略
+
 - **Unit Tests**: Provider, Factory, Utils
 - **Integration Tests**: Provider 切替動作
 - **UI Tests**: コンポーネント動作
@@ -196,30 +223,37 @@ interface S3Bucket {
 ### 実装順序（TDD）
 
 1. **Provider インターフェース** (TDD)
+
    - テスト: Provider 型定義
    - 実装: types.ts
 
 2. **SdkProvider EC2** (TDD)
+
    - テスト: EC2 一覧取得
    - 実装: sdk-provider.ts
 
 3. **CliProvider EC2** (TDD)
+
    - テスト: AWS CLI 実行・JSON パース
    - 実装: cli-provider.ts
 
 4. **Factory** (TDD)
+
    - テスト: 環境変数による切替
    - 実装: factory.ts
 
 5. **NotImplementedYet フォールバック** (TDD)
+
    - テスト: SDK → CLI 自動切替
    - 実装: フォールバック機能
 
 6. **Home 画面** (TDD)
+
    - テスト: メニュー表示・選択
    - 実装: home.tsx
 
 7. **リスト画面** (TDD)
+
    - テスト: テーブル表示・フィルタ
    - 実装: resource-list.tsx
 
@@ -233,6 +267,7 @@ interface S3Bucket {
 - S3:SdkProvider, CliProvider
 
 ## 未実装（対応予定）
+
 - Lambda: 両 Provider
 - RDS: 両 Provider
 - S3: SdkProvider
@@ -241,7 +276,7 @@ interface S3Bucket {
 
 # Reference
 
-k9sの実装を参考にする場合はこのページを参照してください。
+k9s の実装を参考にする場合はこのページを参照してください。
 
-- https://k9scli.io/ 
+- https://k9scli.io/
 - https://github.com/derailed/k9s
