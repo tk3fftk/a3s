@@ -58,3 +58,18 @@ This is a k9s-like AWS resource browsing TUI built with:
 - Hybrid backend: AWS SDK v3 with CLI fallback
 - Environment variables: `A3S_BACKEND`, `AWS_PROFILE`, `COLOR_BLIND`
 - Requires Node.js >=20
+
+## Implementation Plans
+
+Detailed implementation plans for complex features are stored in `.claude/plans/`. These plans contain:
+
+- Step-by-step implementation details
+- Architecture decisions and rationale
+- Dependencies and prerequisites
+- Testing strategies
+
+**Usage Guidelines:**
+
+- Consult existing plans before implementing complex features
+- Plans are version-controlled and should be updated if implementation deviates from the original design
+- Create new plans for significant feature additions or architectural changes

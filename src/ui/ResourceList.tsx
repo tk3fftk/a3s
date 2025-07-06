@@ -9,6 +9,7 @@ export interface ResourceListProps {
 	selectedIndex?: number;
 	loading?: boolean;
 	onBack?: () => void;
+	onQuit?: () => void;
 }
 
 const ec2Columns: TableColumn[] = [
@@ -27,6 +28,7 @@ export function ResourceList({
 	selectedIndex = -1,
 	loading = false,
 	onBack,
+	onQuit,
 }: ResourceListProps) {
 	const getResourceTitle = (type: string) => {
 		switch (type) {
@@ -53,11 +55,13 @@ export function ResourceList({
 	};
 
 	if (typeof process !== 'undefined' && process.env['NODE_ENV'] !== 'test') {
-		useInput((_input, key) => {
+		useInput((input, key) => {
 			if (key.leftArrow || key.escape) {
 				if (onBack) {
 					onBack();
 				}
+			} else if (input === 'q' && onQuit) {
+				onQuit();
 			}
 		});
 	}

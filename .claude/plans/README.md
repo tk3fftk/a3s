@@ -1,121 +1,98 @@
-# .claude/plans/ - 開発計画管理システム
+# Implementation Plans
 
-## 概要
+This directory contains detailed implementation plans for the a3s AWS resource browser TUI project.
 
-a3s プロジェクトの開発計画を体系的に管理するためのディレクトリです。Claude Code での開発時に、計画的で一貫性のある開発を行うために使用します。
+## Overview
 
-## ディレクトリ構造
+The a3s project is a k9s-style AWS resource browsing terminal user interface built with:
 
-```
-.claude/plans/
-├── README.md                 # このファイル
-├── current-status.md         # 現在の実装状況
-├── roadmap.md               # 開発ロードマップ
-├── features/                # 機能開発計画
-│   └── template.md          # 機能開発計画テンプレート
-├── bugfix-template.md       # バグ修正計画テンプレート
-└── refactor-template.md     # リファクタリング計画テンプレート
-```
+- **Ink v4**: React-based CLI framework
+- **TypeScript**: Type-safe development
+- **AWS SDK v3**: Primary AWS integration
+- **Vitest**: Modern testing framework
+- **Docker**: Containerization and LocalStack integration
 
-## 使用方法
+## Plan Structure
 
-### 1. 現在の状況確認
+Each phase represents a major milestone in the project development:
 
-開発を始める前に必ず `current-status.md` を確認し、プロジェクトの現在の状況を把握してください。
+### Completed Phases
 
-### 2. 計画書の作成
+- **Phase 1**: Provider Architecture (`phase-1-provider-architecture.md`)
 
-#### 新機能開発の場合
+  - Abstract provider pattern
+  - SDK and CLI provider implementations
+  - Provider factory with auto-detection
+  - Comprehensive test coverage
 
-```bash
-cp .claude/plans/features/template.md .claude/plans/features/[feature-name].md
-```
+- **Phase 2**: UI Components (`phase-2-ui-components.md`)
 
-テンプレートをコピーして、具体的な機能の計画を作成します。
+  - Ink-based React components
+  - Home screen with service selection
+  - Resource list with table display
+  - Status bar with backend/profile info
 
-#### バグ修正の場合
+- **Phase 3**: Integration (`phase-3-integration.md`)
+  - Directory structure unification
+  - Docker containerization
+  - LocalStack integration for development
+  - Interactive navigation with quit functionality
 
-```bash
-cp .claude/plans/bugfix-template.md .claude/plans/bugfix-[bug-name].md
-```
+### Future Phases
 
-#### リファクタリングの場合
+- **Phase 4**: Data Integration (`phase-4-data-integration.md`)
 
-```bash
-cp .claude/plans/refactor-template.md .claude/plans/refactor-[refactor-name].md
-```
+  - Real AWS data fetching and display
+  - Error handling and loading states
+  - Data refresh mechanisms
 
-### 3. 計画の実行
+- **Phase 5**: Navigation Enhancement (`phase-5-navigation-enhancement.md`)
 
-作成した計画書に従って開発を進めます。進捗に応じて計画書を更新し、完了したタスクをチェックしてください。
+  - Arrow key navigation
+  - Pagination for large datasets
+  - Search and filtering
 
-### 4. 完了後の更新
+- **Phase 6**: Service Expansion (`phase-6-service-expansion.md`)
+  - Additional AWS services (S3, Lambda, RDS)
+  - Service-specific views and actions
+  - Performance optimizations
 
-開発完了後は以下を更新してください：
+## Usage
 
-- `current-status.md` の進捗状況
-- `roadmap.md` の該当フェーズ
-- 完了した計画書にステータスを記録
+1. Read the relevant phase plan before implementing features
+2. Follow the TDD approach outlined in each plan
+3. Update plans if implementation deviates from the original design
+4. Create new plans for significant feature additions
 
-## テンプレート説明
+## Testing Strategy
 
-### 機能開発計画テンプレート (`features/template.md`)
+All phases follow Test-Driven Development (TDD):
 
-新機能の開発時に使用。以下の要素を含みます：
+- Write failing tests first
+- Implement minimal code to pass tests
+- Refactor while keeping tests green
+- Maintain comprehensive test coverage
 
-- 機能概要・背景
-- 技術設計・実装計画
-- テスト計画・リスク評価
-- 完了条件
+Current test status: 59 passing tests across 8 test files.
 
-### バグ修正計画テンプレート (`bugfix-template.md`)
+## Quality Assurance
 
-バグ修正時に使用。以下の要素を含みます：
+### Required Checkpoints
 
-- 問題の詳細・原因調査
-- 修正計画・テスト計画
-- リスク評価・検証方法
+- [ ] All tests pass (`npm run test`)
+- [ ] No linting errors (`npm run lint`)
+- [ ] No TypeScript errors (`npm run build`)
+- [ ] Plan completion criteria met
 
-### リファクタリング計画テンプレート (`refactor-template.md`)
+### TDD Workflow
 
-コードのリファクタリング時に使用。以下の要素を含みます：
+This project follows Test-Driven Development:
 
-- 背景・理由・対象範囲
-- 変更内容・実行計画
-- 安全性の確保・測定指標
-
-## 開発の流れ
-
-1. **計画立案**: 適切なテンプレートを使用して詳細な計画を作成
-2. **実装**: 計画に従って段階的に実装
-3. **テスト**: 各段階でテストを実行して品質を確保
-4. **検証**: 完了条件を満たしているか確認
-5. **文書更新**: 実装状況とロードマップを更新
-
-## 品質保証
-
-### 必須チェックポイント
-
-- [ ] 全テストがパス (`npm run test`)
-- [ ] Linting エラーなし (`npm run lint`)
-- [ ] TypeScript エラーなし (`npm run build`)
-- [ ] 計画書の完了条件を満たす
-
-### TDD の継続
-
-このプロジェクトは TDD で開発されているため、必ず以下の順序で開発してください：
-
-1. **Red**: 失敗するテストを先に書く
-2. **Green**: テストを通す最小限のコードを書く
-3. **Refactor**: コードを改善する
-
-## 履歴管理
-
-- 完了した計画書は削除せず、完了日とステータスを記録して保持
-- 大きな変更は `current-status.md` に記録
-- 学んだ教訓や改善点は次の計画に活用
+1. **Red**: Write failing tests first
+2. **Green**: Write minimal code to pass tests
+3. **Refactor**: Improve code while keeping tests green
 
 ---
 
-_作成日: 2025-07-06_
-_最終更新: 2025-07-06_
+_Created: 2025-07-06_
+_Last Updated: 2025-07-06_

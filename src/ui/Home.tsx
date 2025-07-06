@@ -4,6 +4,7 @@ import {Box, Text, useInput} from 'ink';
 export interface HomeProps {
 	onSelect: (service: string) => void;
 	selectedIndex?: number;
+	onQuit?: () => void;
 }
 
 interface Service {
@@ -18,15 +19,17 @@ const services: Service[] = [
 	{name: 'RDS', description: 'Relational Database Service'},
 ];
 
-export function Home({onSelect, selectedIndex = 0}: HomeProps) {
+export function Home({onSelect, selectedIndex = 0, onQuit}: HomeProps) {
 	// Only enable useInput in non-test environment
 	if (typeof process !== 'undefined' && process.env['NODE_ENV'] !== 'test') {
-		useInput((_input, key) => {
+		useInput((input, key) => {
 			if (key.return) {
 				const service = services[selectedIndex];
 				if (service) {
 					onSelect(service.name);
 				}
+			} else if (input === 'q' && onQuit) {
+				onQuit();
 			}
 		});
 	}

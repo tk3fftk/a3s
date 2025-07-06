@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Box} from 'ink';
+import {Box, useInput} from 'ink';
 import {Home} from './ui/Home.js';
 import {ResourceList} from './ui/ResourceList.js';
 import {StatusBar} from './ui/StatusBar.js';
@@ -9,6 +9,7 @@ type Screen = 'home' | 'ec2' | 's3' | 'lambda' | 'rds';
 export default function App() {
 	const [currentScreen, setCurrentScreen] = useState<Screen>('home');
 	const [selectedIndex, setSelectedIndex] = useState(0);
+	const [shouldQuit, setShouldQuit] = useState(false);
 
 	const handleServiceSelect = (service: string) => {
 		const serviceMap: Record<string, Screen> = {
@@ -30,16 +31,37 @@ export default function App() {
 		setSelectedIndex(0);
 	};
 
+	const handleQuit = () => {
+		setShouldQuit(true);
+	};
+
+	if (typeof process !== 'undefined' && process.env['NODE_ENV'] !== 'test') {
+		useInput((input, key) => {
+			if (input === 'q' || (key.ctrl && input === 'c')) {
+				handleQuit();
+			}
+		});
+	}
+
+	if (shouldQuit) {
+		return null;
+	}
+
 	return (
 		<Box flexDirection="column" height="100%">
 			<Box flexGrow={1}>
 				{currentScreen === 'home' ? (
-					<Home onSelect={handleServiceSelect} selectedIndex={selectedIndex} />
+					<Home
+						onSelect={handleServiceSelect}
+						selectedIndex={selectedIndex}
+						onQuit={handleQuit}
+					/>
 				) : (
 					<ResourceList
 						resourceType={currentScreen}
 						data={[]}
 						onBack={handleBack}
+						onQuit={handleQuit}
 					/>
 				)}
 			</Box>
