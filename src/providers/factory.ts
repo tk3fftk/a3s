@@ -24,7 +24,7 @@ export class ProviderFactory {
 	}
 
 	static getBackendType(): BackendType {
-		const backend = process.env.A3S_BACKEND?.toLowerCase() as BackendType;
+		const backend = process.env['A3S_BACKEND']?.toLowerCase() as BackendType;
 
 		if (!backend) {
 			return 'auto';

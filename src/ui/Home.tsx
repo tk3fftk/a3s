@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Text} from 'ink';
+import {Box, Text, useInput} from 'ink';
 
 export interface HomeProps {
 	onSelect: (service: string) => void;
@@ -18,13 +18,18 @@ const services: Service[] = [
 	{name: 'RDS', description: 'Relational Database Service'},
 ];
 
-export function Home({onSelect: _onSelect, selectedIndex = 0}: HomeProps) {
-	// TODO: Re-enable useInput after resolving test environment issues
-	// useInput((input, key) => {
-	// 	if (key.return) {
-	// 		onSelect(services[selectedIndex].name);
-	// 	}
-	// });
+export function Home({onSelect, selectedIndex = 0}: HomeProps) {
+	// Only enable useInput in non-test environment
+	if (typeof process !== 'undefined' && process.env['NODE_ENV'] !== 'test') {
+		useInput((_input, key) => {
+			if (key.return) {
+				const service = services[selectedIndex];
+				if (service) {
+					onSelect(service.name);
+				}
+			}
+		});
+	}
 
 	return (
 		<Box flexDirection="column" padding={1}>
@@ -43,9 +48,7 @@ export function Home({onSelect: _onSelect, selectedIndex = 0}: HomeProps) {
 							{index === selectedIndex ? '> ' : '  '}
 							{service.name}
 						</Text>
-						<Text color="gray" marginLeft={2}>
-							- {service.description}
-						</Text>
+						<Text color="gray"> - {service.description}</Text>
 					</Box>
 				))}
 			</Box>

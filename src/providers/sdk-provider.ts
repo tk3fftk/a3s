@@ -11,7 +11,9 @@ export class SdkProvider implements Provider {
 	private ec2Client: EC2Client;
 
 	constructor() {
-		this.ec2Client = new EC2Client({});
+		this.ec2Client = new EC2Client({
+			region: process.env['AWS_DEFAULT_REGION'] || 'us-east-1',
+		});
 	}
 
 	async listEC2(): Promise<EC2Instance[]> {

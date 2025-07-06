@@ -64,7 +64,7 @@ export function Table<T = any>({
 						</Text>
 						<Text> </Text>
 						{columns.map((column, colIndex) => {
-							const cellValue = String(row[column.key] || '');
+							const cellValue = String((row as any)[column.key] || '');
 							const truncatedValue = truncateText(cellValue, column.width);
 							const paddedValue = padText(truncatedValue, column.width);
 
