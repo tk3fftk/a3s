@@ -30,12 +30,16 @@ describe('Home', () => {
 		expect(output).toContain('Relational Database Service');
 	});
 
-	it('should highlight selected service', () => {
+	it('should highlight first service by default', () => {
 		const {lastFrame} = render(<Home onSelect={() => {}} />);
 		const output = lastFrame();
 
-		// Should highlight EC2 (index 0) by default
+		// Should highlight EC2 (first service, index 0) by default
 		expect(output).toMatch(/>\s*EC2/);
+		// Other services should not be highlighted
+		expect(output).not.toMatch(/>\s*S3/);
+		expect(output).not.toMatch(/>\s*Lambda/);
+		expect(output).not.toMatch(/>\s*RDS/);
 	});
 
 	it('should show keyboard instructions', () => {
@@ -45,14 +49,6 @@ describe('Home', () => {
 		expect(output).toContain('↑↓');
 		expect(output).toContain('Enter');
 		expect(output).toContain('q');
-	});
-
-	it('should start with first service selected by default', () => {
-		const {lastFrame} = render(<Home onSelect={() => {}} />);
-		const output = lastFrame();
-
-		// Should highlight EC2 (index 0) by default
-		expect(output).toMatch(/>\s*EC2/);
 	});
 
 	it('should use useNavigation hook for managing selection state', () => {
