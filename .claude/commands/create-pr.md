@@ -1,5 +1,5 @@
 ---
-description: "Pull Request Templateに合わせたPull Requestを作成します"
+description: 'Pull Request Templateに合わせたPull Requestを作成します'
 ---
 
 # Create Pull Request

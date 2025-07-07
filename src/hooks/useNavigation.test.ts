@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe, it, expect} from 'vitest';
+import {describe, it, expect, vi} from 'vitest';
 import {renderHook, act} from '@testing-library/react';
 import {useNavigation} from './useNavigation.js';
 
@@ -98,5 +98,33 @@ describe('useNavigation', () => {
 			result.current.moveUp();
 		});
 		expect(result.current.selectedIndex).toBe(0);
+	});
+
+	it('should call onQuit when quit method is called', () => {
+		const mockQuit = vi.fn();
+		const {result} = renderHook(() => useNavigation(4, undefined, mockQuit));
+
+		act(() => {
+			result.current.quit();
+		});
+
+		expect(mockQuit).toHaveBeenCalledTimes(1);
+	});
+
+	it('should handle onQuit callback with onSelect callback', () => {
+		const mockSelect = vi.fn();
+		const mockQuit = vi.fn();
+		const {result} = renderHook(() => useNavigation(4, mockSelect, mockQuit));
+
+		// Test that both callbacks work independently
+		act(() => {
+			result.current.select();
+		});
+		expect(mockSelect).toHaveBeenCalledWith(0);
+
+		act(() => {
+			result.current.quit();
+		});
+		expect(mockQuit).toHaveBeenCalledTimes(1);
 	});
 });

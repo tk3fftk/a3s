@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Text, useInput} from 'ink';
+import {Box, Text} from 'ink';
 import {useNavigation} from '../hooks/useNavigation.js';
 
 export interface HomeProps {
@@ -20,21 +20,16 @@ const services: Service[] = [
 ];
 
 export function Home({onSelect, onQuit}: HomeProps) {
-	const {selectedIndex} = useNavigation(services.length, index => {
-		const service = services[index];
-		if (service) {
-			onSelect(service.name);
-		}
-	});
-
-	// Handle quit separately
-	if (typeof process !== 'undefined' && process.env['NODE_ENV'] !== 'test') {
-		useInput((input, _key) => {
-			if (input === 'q' && onQuit) {
-				onQuit();
+	const {selectedIndex} = useNavigation(
+		services.length,
+		index => {
+			const service = services[index];
+			if (service) {
+				onSelect(service.name);
 			}
-		});
-	}
+		},
+		onQuit,
+	);
 
 	return (
 		<Box flexDirection="column" padding={1}>
