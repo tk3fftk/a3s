@@ -1,9 +1,9 @@
 import React from 'react';
 import {Box, Text, useInput} from 'ink';
+import {useNavigation} from '../hooks/useNavigation.js';
 
 export interface HomeProps {
 	onSelect: (service: string) => void;
-	selectedIndex?: number;
 	onQuit?: () => void;
 }
 
@@ -19,16 +19,18 @@ const services: Service[] = [
 	{name: 'RDS', description: 'Relational Database Service'},
 ];
 
-export function Home({onSelect, selectedIndex = 0, onQuit}: HomeProps) {
-	// Only enable useInput in non-test environment
+export function Home({onSelect, onQuit}: HomeProps) {
+	const {selectedIndex} = useNavigation(services.length, index => {
+		const service = services[index];
+		if (service) {
+			onSelect(service.name);
+		}
+	});
+
+	// Handle quit separately
 	if (typeof process !== 'undefined' && process.env['NODE_ENV'] !== 'test') {
-		useInput((input, key) => {
-			if (key.return) {
-				const service = services[selectedIndex];
-				if (service) {
-					onSelect(service.name);
-				}
-			} else if (input === 'q' && onQuit) {
+		useInput((input, _key) => {
+			if (input === 'q' && onQuit) {
 				onQuit();
 			}
 		});

@@ -31,39 +31,11 @@ describe('Home', () => {
 	});
 
 	it('should highlight selected service', () => {
-		const {lastFrame} = render(<Home onSelect={() => {}} selectedIndex={1} />);
+		const {lastFrame} = render(<Home onSelect={() => {}} />);
 		const output = lastFrame();
 
-		// Should highlight S3 (index 1)
-		expect(output).toMatch(/>\s*S3/);
-	});
-
-	it('should call onSelect when Enter is pressed', () => {
-		let selectedService = '';
-		const handleSelect = (service: string) => {
-			selectedService = service;
-		};
-
-		const {stdin} = render(<Home onSelect={handleSelect} selectedIndex={0} />);
-
-		// Simulate Enter key press
-		setTimeout(() => {
-			stdin.write('\r');
-		}, 10);
-
-		// For now, we'll test the component structure instead of actual input
-		expect(selectedService).toBe('');
-	});
-
-	it('should navigate up and down with arrow keys', () => {
-		const handleSelect = () => {};
-
-		// Test that different selectedIndex values show different highlights
-		const output1 = render(
-			<Home onSelect={handleSelect} selectedIndex={1} />,
-		).lastFrame();
-
-		expect(output1).toMatch(/>\s*S3/);
+		// Should highlight EC2 (index 0) by default
+		expect(output).toMatch(/>\s*EC2/);
 	});
 
 	it('should show keyboard instructions', () => {
@@ -73,5 +45,41 @@ describe('Home', () => {
 		expect(output).toContain('↑↓');
 		expect(output).toContain('Enter');
 		expect(output).toContain('q');
+	});
+
+	it('should start with first service selected by default', () => {
+		const {lastFrame} = render(<Home onSelect={() => {}} />);
+		const output = lastFrame();
+
+		// Should highlight EC2 (index 0) by default
+		expect(output).toMatch(/>\s*EC2/);
+	});
+
+	it('should use useNavigation hook for managing selection state', () => {
+		// Test that the Home component renders correctly with navigation hook
+		const {lastFrame} = render(<Home onSelect={() => {}} />);
+		const output = lastFrame();
+
+		// Should show all services
+		expect(output).toContain('EC2');
+		expect(output).toContain('S3');
+		expect(output).toContain('Lambda');
+		expect(output).toContain('RDS');
+
+		// Should highlight the first item by default (managed by useNavigation hook)
+		expect(output).toMatch(/>\s*EC2/);
+	});
+
+	it('should provide onSelect callback for service selection', () => {
+		let selectedService = '';
+		const handleSelect = (service: string) => {
+			selectedService = service;
+		};
+
+		render(<Home onSelect={handleSelect} />);
+
+		// Component should render without errors and accept the callback
+		// Actual keyboard interaction testing is handled by the useNavigation hook tests
+		expect(selectedService).toBe('');
 	});
 });

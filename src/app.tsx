@@ -12,7 +12,6 @@ interface AppProps {
 
 export default function App({onExit}: AppProps = {}) {
 	const [currentScreen, setCurrentScreen] = useState<Screen>('home');
-	const [selectedIndex, setSelectedIndex] = useState(0);
 	const [shouldQuit, setShouldQuit] = useState(false);
 
 	const handleServiceSelect = (service: string) => {
@@ -26,13 +25,11 @@ export default function App({onExit}: AppProps = {}) {
 		const screen = serviceMap[service];
 		if (screen) {
 			setCurrentScreen(screen);
-			setSelectedIndex(0);
 		}
 	};
 
 	const handleBack = () => {
 		setCurrentScreen('home');
-		setSelectedIndex(0);
 	};
 
 	const handleQuit = () => {
@@ -59,11 +56,7 @@ export default function App({onExit}: AppProps = {}) {
 		<Box flexDirection="column" height="100%">
 			<Box flexGrow={1}>
 				{currentScreen === 'home' ? (
-					<Home
-						onSelect={handleServiceSelect}
-						selectedIndex={selectedIndex}
-						onQuit={handleQuit}
-					/>
+					<Home onSelect={handleServiceSelect} onQuit={handleQuit} />
 				) : (
 					<ResourceList
 						resourceType={currentScreen}
