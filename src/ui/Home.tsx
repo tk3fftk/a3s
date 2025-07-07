@@ -1,10 +1,11 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {Box, Text} from 'ink';
 import {useNavigation} from '../hooks/useNavigation.js';
 
 export interface HomeProps {
 	onSelect: (service: string) => void;
 	onQuit?: () => void;
+	currentScreen: string;
 }
 
 interface Service {
@@ -19,8 +20,8 @@ const services: Service[] = [
 	{name: 'RDS', description: 'Relational Database Service'},
 ];
 
-export function Home({onSelect, onQuit}: HomeProps) {
-	const {selectedIndex} = useNavigation(
+export function Home({onSelect, onQuit, currentScreen}: HomeProps) {
+	const {selectedIndex, setSelectedIndex} = useNavigation(
 		services.length,
 		index => {
 			const service = services[index];
@@ -29,7 +30,15 @@ export function Home({onSelect, onQuit}: HomeProps) {
 			}
 		},
 		onQuit,
+		currentScreen === 'home',
 	);
+
+	// Reset selectedIndex when returning to home screen
+	useEffect(() => {
+		if (currentScreen === 'home') {
+			setSelectedIndex(0);
+		}
+	}, [currentScreen, setSelectedIndex]);
 
 	return (
 		<Box flexDirection="column" padding={1}>

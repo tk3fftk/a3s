@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Box, useInput} from 'ink';
+import {Box} from 'ink';
 import {Home} from './ui/Home.js';
 import {ResourceList} from './ui/ResourceList.js';
 import {StatusBar} from './ui/StatusBar.js';
@@ -40,13 +40,7 @@ export default function App({onExit}: AppProps = {}) {
 		}
 	};
 
-	if (typeof process !== 'undefined' && process.env['NODE_ENV'] !== 'test') {
-		useInput((input, key) => {
-			if (input === 'q' || (key.ctrl && input === 'c')) {
-				handleQuit();
-			}
-		});
-	}
+	// Global quit handling is now handled by individual components to avoid input conflicts
 
 	if (shouldQuit) {
 		return null;
@@ -56,13 +50,18 @@ export default function App({onExit}: AppProps = {}) {
 		<Box flexDirection="column" height="100%">
 			<Box flexGrow={1}>
 				{currentScreen === 'home' ? (
-					<Home onSelect={handleServiceSelect} onQuit={handleQuit} />
+					<Home
+						onSelect={handleServiceSelect}
+						onQuit={handleQuit}
+						currentScreen={currentScreen}
+					/>
 				) : (
 					<ResourceList
 						resourceType={currentScreen}
 						data={[]}
 						onBack={handleBack}
 						onQuit={handleQuit}
+						currentScreen={currentScreen}
 					/>
 				)}
 			</Box>

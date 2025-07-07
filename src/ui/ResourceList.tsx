@@ -10,6 +10,7 @@ export interface ResourceListProps {
 	loading?: boolean;
 	onBack?: () => void;
 	onQuit?: () => void;
+	currentScreen: string;
 }
 
 const ec2Columns: TableColumn[] = [
@@ -29,6 +30,7 @@ export function ResourceList({
 	loading = false,
 	onBack,
 	onQuit,
+	currentScreen,
 }: ResourceListProps) {
 	const getResourceTitle = (type: string) => {
 		switch (type) {
@@ -54,8 +56,17 @@ export function ResourceList({
 		}
 	};
 
-	if (typeof process !== 'undefined' && process.env['NODE_ENV'] !== 'test') {
-		useInput((input, key) => {
+	useInput(
+		(input, key) => {
+			// Debug logging for input conflicts
+			if (process.env['NODE_ENV'] !== 'test') {
+				console.log(
+					`ResourceList input: ${input}, active: ${
+						currentScreen === resourceType
+					}`,
+				);
+			}
+
 			if (key.leftArrow || key.escape) {
 				if (onBack) {
 					onBack();
@@ -63,8 +74,13 @@ export function ResourceList({
 			} else if (input === 'q' && onQuit) {
 				onQuit();
 			}
-		});
-	}
+		},
+		{
+			isActive:
+				currentScreen === resourceType &&
+				(typeof process === 'undefined' || process.env['NODE_ENV'] !== 'test'),
+		},
+	);
 
 	return (
 		<Box flexDirection="column" padding={1}>
