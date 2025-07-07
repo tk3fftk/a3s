@@ -59,6 +59,101 @@ This is a k9s-like AWS resource browsing TUI built with:
 - Environment variables: `A3S_BACKEND`, `AWS_PROFILE`, `COLOR_BLIND`
 - Requires Node.js >=20
 
+## React Hooks Best Practices
+
+**CRITICAL: Always follow React Hooks Rules**
+
+### Hooks Rules Compliance
+
+- **Never call hooks conditionally**: Always call hooks in the same order
+- **Use options for conditional behavior**: Prefer `isActive` option over conditional hook calls
+- **Example pattern for Ink useInput**:
+
+  ```typescript
+  // ❌ WRONG - Violates hooks rules
+  if (process.env.NODE_ENV !== 'test') {
+  	useInput(callback);
+  }
+
+  // ✅ CORRECT - Use isActive option
+  useInput(callback, {
+  	isActive: process.env.NODE_ENV !== 'test',
+  });
+  ```
+
+### Ink v4 Testing Patterns
+
+**Testing Environment Considerations:**
+
+- Use `isActive: false` in test environments to avoid `stdin.ref` errors
+- Extract navigation logic into custom hooks for easier testing
+- Test hooks separately from components when keyboard interaction is involved
+
+**Example navigation hook pattern**:
+
+```typescript
+export function useNavigation(
+	itemCount: number,
+	onSelect?: Function,
+	onQuit?: Function,
+) {
+	const [selectedIndex, setSelectedIndex] = useState(0);
+
+	useInput(
+		(input, key) => {
+			// Navigation logic here
+		},
+		{
+			isActive: process.env.NODE_ENV !== 'test',
+		},
+	);
+
+	return {selectedIndex, moveUp, moveDown, select, quit};
+}
+```
+
+## Testing Excellence Guidelines
+
+### Test Quality Standards
+
+- **Eliminate duplicate tests**: Consolidate tests with identical assertions
+- **Comprehensive coverage**: Test both positive and negative cases
+- **Clear test intent**: Use descriptive test names and comments
+- **DRY principle**: Avoid repeating test logic
+
+### Example of good test consolidation:
+
+```typescript
+// ❌ DUPLICATE TESTS
+it('should highlight selected service', () => {
+	expect(output).toMatch(/>\s*EC2/);
+});
+it('should start with first service selected', () => {
+	expect(output).toMatch(/>\s*EC2/);
+});
+
+// ✅ CONSOLIDATED TEST
+it('should highlight first service by default', () => {
+	expect(output).toMatch(/>\s*EC2/);
+	expect(output).not.toMatch(/>\s*S3/);
+	expect(output).not.toMatch(/>\s*Lambda/);
+});
+```
+
+## Code Review Integration
+
+### GitHub Copilot Feedback
+
+- **Act on Copilot suggestions**: Address feedback promptly with proper commits
+- **Document decisions**: Reference Copilot feedback in commit messages
+- **Learn from patterns**: Use feedback to improve coding practices
+
+### Quality Checks
+
+- Always run linting after making changes based on feedback
+- Ensure all tests pass after refactoring
+- Verify no regression in functionality
+
 ## Implementation Plans
 
 Detailed implementation plans for complex features are stored in `.claude/plans/`. These plans contain:
