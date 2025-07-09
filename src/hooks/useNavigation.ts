@@ -20,7 +20,7 @@ export function useNavigation(
 	useInput(
 		(input, key) => {
 			// Debug logging for input conflicts
-			if (process.env['NODE_ENV'] !== 'test') {
+			if (verbose && process.env['NODE_ENV'] !== 'test') {
 				console.log(`useNavigation input: ${input}, isActive: ${isActive}`);
 			}
 
