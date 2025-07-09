@@ -58,14 +58,7 @@ export function ResourceList({
 
 	useInput(
 		(input, key) => {
-			// Debug logging for input conflicts
-			if (process.env['NODE_ENV'] !== 'test') {
-				console.log(
-					`ResourceList input: ${input}, active: ${
-						currentScreen === resourceType
-					}`,
-				);
-			}
+			// Debug logging removed as per CodeQL recommendation
 
 			if (key.leftArrow || key.escape) {
 				if (onBack) {
