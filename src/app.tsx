@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Box, useInput} from 'ink';
+import {Box} from 'ink';
 import {Home} from './ui/Home.js';
 import {ResourceList} from './ui/ResourceList.js';
 import {StatusBar} from './ui/StatusBar.js';
@@ -12,7 +12,6 @@ interface AppProps {
 
 export default function App({onExit}: AppProps = {}) {
 	const [currentScreen, setCurrentScreen] = useState<Screen>('home');
-	const [selectedIndex, setSelectedIndex] = useState(0);
 	const [shouldQuit, setShouldQuit] = useState(false);
 
 	const handleServiceSelect = (service: string) => {
@@ -26,13 +25,11 @@ export default function App({onExit}: AppProps = {}) {
 		const screen = serviceMap[service];
 		if (screen) {
 			setCurrentScreen(screen);
-			setSelectedIndex(0);
 		}
 	};
 
 	const handleBack = () => {
 		setCurrentScreen('home');
-		setSelectedIndex(0);
 	};
 
 	const handleQuit = () => {
@@ -43,13 +40,7 @@ export default function App({onExit}: AppProps = {}) {
 		}
 	};
 
-	if (typeof process !== 'undefined' && process.env['NODE_ENV'] !== 'test') {
-		useInput((input, key) => {
-			if (input === 'q' || (key.ctrl && input === 'c')) {
-				handleQuit();
-			}
-		});
-	}
+	// Global quit handling is now handled by individual components to avoid input conflicts
 
 	if (shouldQuit) {
 		return null;
@@ -61,8 +52,8 @@ export default function App({onExit}: AppProps = {}) {
 				{currentScreen === 'home' ? (
 					<Home
 						onSelect={handleServiceSelect}
-						selectedIndex={selectedIndex}
 						onQuit={handleQuit}
+						currentScreen={currentScreen}
 					/>
 				) : (
 					<ResourceList
@@ -70,6 +61,7 @@ export default function App({onExit}: AppProps = {}) {
 						data={[]}
 						onBack={handleBack}
 						onQuit={handleQuit}
+						currentScreen={currentScreen}
 					/>
 				)}
 			</Box>

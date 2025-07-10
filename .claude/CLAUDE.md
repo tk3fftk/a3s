@@ -1,0 +1,2 @@
+- Using Test-Driven Development approach.
+- Your response should be Japanese.
