@@ -4,7 +4,7 @@ import {Box, Text} from 'ink';
 export interface TableColumn {
 	key: string;
 	header: string;
-	width: number;
+	width: string; // Now uses percentage like "20%"
 }
 
 export interface TableProps<T = any> {
@@ -14,15 +14,12 @@ export interface TableProps<T = any> {
 	loading?: boolean;
 }
 
-function truncateText(text: string, maxWidth: number): string {
-	if (text.length <= maxWidth) {
+// Helper function to truncate text for responsive display
+function truncateText(text: string, maxLength: number = 50): string {
+	if (text.length <= maxLength) {
 		return text;
 	}
-	return text.slice(0, maxWidth - 3) + '...';
-}
-
-function padText(text: string, width: number): string {
-	return text.padEnd(width).slice(0, width);
+	return text.slice(0, maxLength - 3) + '...';
 }
 
 export function Table<T = any>({
@@ -43,11 +40,12 @@ export function Table<T = any>({
 		<Box flexDirection="column">
 			{/* Header */}
 			<Box flexDirection="row">
-				{columns.map((column, index) => (
-					<Text key={column.key} color="blue" bold>
-						{padText(column.header, column.width)}
-						{index < columns.length - 1 ? ' ' : ''}
-					</Text>
+				{columns.map(column => (
+					<Box key={column.key} width={column.width}>
+						<Text color="blue" bold>
+							{column.header}
+						</Text>
+					</Box>
 				))}
 			</Box>
 
@@ -59,23 +57,20 @@ export function Table<T = any>({
 			) : (
 				data.map((row, rowIndex) => (
 					<Box key={rowIndex} flexDirection="row">
-						<Text color={selectedIndex === rowIndex ? 'green' : 'white'}>
-							{selectedIndex === rowIndex ? '>' : ' '}
-						</Text>
-						<Text> </Text>
-						{columns.map((column, colIndex) => {
+						<Box width="3">
+							<Text color={selectedIndex === rowIndex ? 'green' : 'white'}>
+								{selectedIndex === rowIndex ? '>' : ' '}
+							</Text>
+						</Box>
+						{columns.map(column => {
 							const cellValue = String((row as any)[column.key] || '');
-							const truncatedValue = truncateText(cellValue, column.width);
-							const paddedValue = padText(truncatedValue, column.width);
 
 							return (
-								<Text
-									key={column.key}
-									color={selectedIndex === rowIndex ? 'green' : 'white'}
-								>
-									{paddedValue}
-									{colIndex < columns.length - 1 ? ' ' : ''}
-								</Text>
+								<Box key={column.key} width={column.width}>
+									<Text color={selectedIndex === rowIndex ? 'green' : 'white'}>
+										{truncateText(cellValue)}
+									</Text>
+								</Box>
 							);
 						})}
 					</Box>

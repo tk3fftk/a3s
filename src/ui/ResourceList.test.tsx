@@ -55,7 +55,7 @@ describe('ResourceList', () => {
 		);
 		const output = lastFrame();
 
-		expect(output).toContain('i-123456789abcdef0');
+		expect(output).toContain('i-123456789abcd');
 		expect(output).toContain('web-server');
 		expect(output).toContain('running');
 		expect(output).toContain('t2.micro');

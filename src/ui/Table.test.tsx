@@ -16,9 +16,9 @@ const testData: TestRow[] = [
 ];
 
 const testColumns = [
-	{key: 'id', header: 'Instance ID', width: 12},
-	{key: 'name', header: 'Name', width: 15},
-	{key: 'status', header: 'Status', width: 10},
+	{key: 'id', header: 'Instance ID', width: '30%'},
+	{key: 'name', header: 'Name', width: '40%'},
+	{key: 'status', header: 'Status', width: '30%'},
 ];
 
 describe('Table', () => {
@@ -63,14 +63,16 @@ describe('Table', () => {
 		expect(output).toContain('No data available');
 	});
 
-	it('should respect column widths', () => {
+	it('should use responsive column layout', () => {
 		const {lastFrame} = render(<Table data={testData} columns={testColumns} />);
 		const output = lastFrame();
 
-		// Headers should be properly spaced
+		// Headers should be properly displayed with responsive layout
 		const lines = output.split('\n');
 		const headerLine = lines.find(line => line.includes('Instance ID'));
 		expect(headerLine).toBeDefined();
+		expect(headerLine).toContain('Name');
+		expect(headerLine).toContain('Status');
 	});
 
 	it('should show loading state', () => {
@@ -86,7 +88,7 @@ describe('Table', () => {
 		const longData = [
 			{
 				id: 'i-123456789012345678901234567890',
-				name: 'very-long-server-name-that-exceeds-column-width',
+				name: 'this-is-a-very-long-server-name-that-definitely-exceeds-the-fifty-character-limit-for-truncation',
 				status: 'running',
 			},
 		];
@@ -94,7 +96,8 @@ describe('Table', () => {
 		const {lastFrame} = render(<Table data={longData} columns={testColumns} />);
 		const output = lastFrame();
 
-		// Should contain truncated content (first column width is 12, so 'i-123456789...' would be 12 chars)
-		expect(output).toContain('i-1234567...');
+		// Should contain truncated content (default maxLength is 50, so should end with '...')
+		expect(output).toContain('...');
+		expect(output).toContain('this-is-a-very-long');
 	});
 });

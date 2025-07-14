@@ -18,13 +18,13 @@ export interface ResourceListProps {
 }
 
 const ec2Columns: TableColumn[] = [
-	{key: 'id', header: 'Instance ID', width: 20},
-	{key: 'name', header: 'Name', width: 15},
-	{key: 'state', header: 'State', width: 10},
-	{key: 'type', header: 'Type', width: 10},
-	{key: 'publicIp', header: 'Public IP', width: 15},
-	{key: 'privateIp', header: 'Private IP', width: 15},
-	{key: 'availabilityZone', header: 'AZ', width: 12},
+	{key: 'id', header: 'Instance ID', width: '20%'},
+	{key: 'name', header: 'Name', width: '25%'},
+	{key: 'state', header: 'State', width: '12%'},
+	{key: 'type', header: 'Type', width: '15%'},
+	{key: 'publicIp', header: 'Public IP', width: '18%'},
+	{key: 'privateIp', header: 'Private IP', width: '18%'},
+	{key: 'availabilityZone', header: 'AZ', width: '12%'},
 ];
 
 export function ResourceList({

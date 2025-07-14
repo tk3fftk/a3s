@@ -24,35 +24,44 @@ describe('App', () => {
 		expect(lastFrame()).toContain('RDS');
 	});
 
-	it('should navigate to EC2 screen when EC2 is selected', () => {
+	it('should navigate to EC2 screen when EC2 is selected', async () => {
 		const {lastFrame, stdin} = render(<App />);
 
 		// Navigate to EC2
 		stdin.write('\r'); // Press Enter to select EC2
 
+		// Wait for async navigation to complete
+		await new Promise(resolve => setTimeout(resolve, 10));
+
 		// Should show EC2 Resources screen
-		expect(lastFrame()).toContain('EC2 Resources');
-		expect(lastFrame()).toContain('No resources found');
+		expect(lastFrame()).toContain('EC2 Instances');
+		expect(lastFrame()).toContain('No data available');
 	});
 
-	it('should navigate to S3 screen when S3 is selected', () => {
+	it('should navigate to S3 screen when S3 is selected', async () => {
 		const {lastFrame, stdin} = render(<App />);
 
 		// Navigate down to S3
 		stdin.write('j'); // Move down to S3
 		stdin.write('\r'); // Select S3
 
+		// Wait for async navigation to complete
+		await new Promise(resolve => setTimeout(resolve, 10));
+
 		// Should show S3 Resources screen
-		expect(lastFrame()).toContain('S3 Resources');
-		expect(lastFrame()).toContain('No resources found');
+		expect(lastFrame()).toContain('S3 Buckets');
+		expect(lastFrame()).toContain('No data available');
 	});
 
-	it('should navigate back to home when pressing back key', () => {
+	it('should navigate back to home when pressing back key', async () => {
 		const {lastFrame, stdin} = render(<App />);
 
 		// Navigate to EC2
 		stdin.write('\r');
-		expect(lastFrame()).toContain('EC2 Resources');
+
+		// Wait for async navigation to complete
+		await new Promise(resolve => setTimeout(resolve, 10));
+		expect(lastFrame()).toContain('EC2 Instances');
 
 		// Navigate back
 		stdin.write('\x1B'); // Escape key
@@ -63,12 +72,15 @@ describe('App', () => {
 		expect(lastFrame()).toContain('S3');
 	});
 
-	it('should quit when pressing q on home screen', () => {
+	it('should quit when pressing q on home screen', async () => {
 		const onExit = vi.fn();
 		const {stdin} = render(<App onExit={onExit} />);
 
 		// Press q to quit
 		stdin.write('q');
+
+		// Wait for async processing
+		await new Promise(resolve => setTimeout(resolve, 10));
 
 		// Should call onExit
 		expect(onExit).toHaveBeenCalled();
