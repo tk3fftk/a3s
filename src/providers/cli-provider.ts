@@ -6,6 +6,7 @@ import {
 	RDSInstance,
 } from '../types/resources.js';
 import {Provider, NotImplementedYet} from './types.js';
+import {debugLog} from '../utils/debug.js';
 
 export class CliProvider implements Provider {
 	private buildAwsCommand(
@@ -29,10 +30,15 @@ export class CliProvider implements Provider {
 			'--output',
 			'json',
 		]);
+		debugLog('CLI Provider - Running command:', 'aws', args.join(' '));
 		const result = await execa('aws', args);
 
 		const response = JSON.parse(result.stdout);
 		const instances: EC2Instance[] = [];
+		debugLog(
+			'CLI Provider - Reservations count:',
+			response.Reservations?.length || 0,
+		);
 
 		if (response.Reservations) {
 			for (const reservation of response.Reservations) {

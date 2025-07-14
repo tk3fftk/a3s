@@ -1,12 +1,14 @@
 # Phase 4: Data Integration
 
-**Status**: ⚙️ PLANNED  
-**Priority**: HIGH  
+**Status**: 🔥 IN PROGRESS  
+**Priority**: HIGH - CRITICAL PATH  
 **Estimated Duration**: 1-2 days
 
 ## Overview
 
 Implement real AWS data fetching and display functionality to show actual EC2 instances, S3 buckets, and other AWS resources in the TUI. This phase will connect the UI components with the provider architecture to create a fully functional AWS resource browser.
+
+**Current State**: The UI and navigation are complete, but the app shows empty data arrays. This phase is critical to make the application functional.
 
 ## Goals
 
@@ -166,32 +168,54 @@ interface ProviderError {
 }
 ```
 
+## Implementation Status
+
+### 🔥 Current Blockers
+
+1. **ResourceList shows empty data**
+
+   - `data=[]` is hardcoded in app.tsx
+   - No useResources hook exists
+   - Providers are not connected to UI
+
+2. **Limited Provider Implementation**
+   - Only EC2 listInstances() is implemented
+   - S3, Lambda, RDS throw NotImplementedYet
+   - SDK provider missing default region
+
+### 🎯 Immediate Next Steps
+
+1. **Create useResources hook** (src/hooks/useResources.ts)
+2. **Connect providers to UI** in app.tsx
+3. **Implement remaining provider methods**
+4. **Add loading and error states**
+
 ## Implementation Plan
 
 ### Phase 4.1: Basic Data Integration (Day 1)
 
 #### Tasks:
 
-1. ✅ **Create useResources hook**
+1. [ ] **Create useResources hook**
 
    - Implement basic data fetching
    - Add loading and error states
    - Include refresh functionality
 
-2. ✅ **Update App component**
+2. [ ] **Update App component**
 
    - Integrate useResources hook
    - Pass data to ResourceList
    - Handle loading/error states
 
-3. ✅ **Enhance ResourceList component**
+3. [ ] **Enhance ResourceList component**
 
    - Accept and display real data
    - Show loading spinner
    - Display error messages
    - Add refresh capability
 
-4. ✅ **Extend provider implementations**
+4. [ ] **Extend provider implementations**
    - Add S3, Lambda, RDS methods to SDK provider
    - Add corresponding CLI provider methods
    - Update factory for new methods
@@ -208,25 +232,35 @@ interface ProviderError {
 
 #### Tasks:
 
-1. ✅ **Multi-service support**
+1. [ ] **Multi-service support**
 
    - Implement S3 bucket listing
    - Add Lambda function listing
    - Include RDS instance listing
 
-2. ✅ **Pagination support**
+2. [ ] **Pagination support**
 
    - Handle large datasets
    - Add next/previous navigation
    - Show page indicators
 
-3. ✅ **Region selection**
+3. [ ] **Region selection**
 
    - Add region switching capability
-   - Update StatusBar to show region
+   - Update StatusBar to show current region
    - Persist region selection
+   - Dynamic region selection menu:
+     - 'R' key to open region selector
+     - List available AWS regions
+     - Update all providers with new region
+     - Refresh data after region change
+   - Profile region priority (implemented):
+     - AWS_REGION env var (highest priority)
+     - AWS profile region from ~/.aws/config
+     - AWS_DEFAULT_REGION env var
+     - Default to 'us-east-1'
 
-4. ✅ **Search and filtering**
+4. [ ] **Search and filtering**
    - Add search input field
    - Implement client-side filtering
    - Add filter by resource state
@@ -412,6 +446,8 @@ interface PaginationOptions {
 
 ---
 
-**Target Completion**: TBD  
-**Previous Phase**: [Phase 3: Integration](phase-3-integration.md)  
-**Next Phase**: [Phase 5: Navigation Enhancement](phase-5-navigation-enhancement.md)
+**Target Completion**: 2025-07-11  
+**Previous Phase**: [Phase 3: Integration](phase-3-integration.md) ✅  
+**Next Phase**: [Phase 6: Service Expansion](phase-6-service-expansion.md)
+
+**Note**: Phase 5 (Navigation Enhancement) was completed ahead of schedule and is already integrated into the current implementation.

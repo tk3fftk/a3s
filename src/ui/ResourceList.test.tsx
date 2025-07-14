@@ -30,7 +30,11 @@ const testEC2Data: EC2Instance[] = [
 describe('ResourceList', () => {
 	it('should render EC2 instances with table headers', () => {
 		const {lastFrame} = render(
-			<ResourceList resourceType="EC2" data={testEC2Data} />,
+			<ResourceList
+				resourceType="EC2"
+				data={testEC2Data}
+				currentScreen="ec2"
+			/>,
 		);
 		const output = lastFrame();
 
@@ -43,7 +47,11 @@ describe('ResourceList', () => {
 
 	it('should render EC2 instance data', () => {
 		const {lastFrame} = render(
-			<ResourceList resourceType="EC2" data={testEC2Data} />,
+			<ResourceList
+				resourceType="EC2"
+				data={testEC2Data}
+				currentScreen="ec2"
+			/>,
 		);
 		const output = lastFrame();
 
@@ -67,7 +75,9 @@ describe('ResourceList', () => {
 	});
 
 	it('should handle empty data', () => {
-		const {lastFrame} = render(<ResourceList resourceType="EC2" data={[]} />);
+		const {lastFrame} = render(
+			<ResourceList resourceType="EC2" data={[]} currentScreen="ec2" />,
+		);
 		const output = lastFrame();
 
 		expect(output).toContain('Instance ID');
@@ -76,7 +86,12 @@ describe('ResourceList', () => {
 
 	it('should show loading state', () => {
 		const {lastFrame} = render(
-			<ResourceList resourceType="EC2" data={testEC2Data} loading={true} />,
+			<ResourceList
+				resourceType="EC2"
+				data={[]}
+				loading={true}
+				currentScreen="ec2"
+			/>,
 		);
 		const output = lastFrame();
 
@@ -85,7 +100,11 @@ describe('ResourceList', () => {
 
 	it('should display resource type title', () => {
 		const {lastFrame} = render(
-			<ResourceList resourceType="EC2" data={testEC2Data} />,
+			<ResourceList
+				resourceType="EC2"
+				data={testEC2Data}
+				currentScreen="ec2"
+			/>,
 		);
 		const output = lastFrame();
 
@@ -94,10 +113,42 @@ describe('ResourceList', () => {
 
 	it('should show back navigation instruction', () => {
 		const {lastFrame} = render(
-			<ResourceList resourceType="EC2" data={testEC2Data} />,
+			<ResourceList
+				resourceType="EC2"
+				data={testEC2Data}
+				currentScreen="ec2"
+			/>,
 		);
 		const output = lastFrame();
 
 		expect(output).toContain('← Back');
+	});
+
+	it('should display error state', () => {
+		const {lastFrame} = render(
+			<ResourceList
+				resourceType="EC2"
+				data={[]}
+				error="Failed to fetch resources"
+				currentScreen="ec2"
+			/>,
+		);
+		const output = lastFrame();
+
+		expect(output).toContain('Error: Failed to fetch resources');
+	});
+
+	it('should show refresh hint when error occurs', () => {
+		const {lastFrame} = render(
+			<ResourceList
+				resourceType="EC2"
+				data={[]}
+				error="Network error"
+				currentScreen="ec2"
+			/>,
+		);
+		const output = lastFrame();
+
+		expect(output).toContain("Press 'r' to retry");
 	});
 });

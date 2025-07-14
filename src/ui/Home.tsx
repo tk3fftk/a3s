@@ -1,11 +1,13 @@
-import React, {useEffect} from 'react';
-import {Box, Text} from 'ink';
+import React, {useState} from 'react';
+import {Box, Text, useInput} from 'ink';
 import {useNavigation} from '../hooks/useNavigation.js';
+import {useResourceCache} from '../hooks/ResourceCacheContext.js';
+import {ConfirmationDialog} from './ConfirmationDialog.js';
 
 export interface HomeProps {
 	onSelect: (service: string) => void;
 	onQuit?: () => void;
-	currentScreen: string;
+	currentScreen?: string;
 }
 
 interface Service {
@@ -21,7 +23,17 @@ const services: Service[] = [
 ];
 
 export function Home({onSelect, onQuit, currentScreen}: HomeProps) {
-	const {selectedIndex, setSelectedIndex} = useNavigation(
+	const [showConfirmation, setShowConfirmation] = useState(false);
+
+	// Try to use cache context, but make it optional for backwards compatibility
+	let cacheContext: ReturnType<typeof useResourceCache> | null = null;
+	try {
+		cacheContext = useResourceCache();
+	} catch {
+		// Cache context not available - continue without caching
+	}
+
+	const {selectedIndex} = useNavigation(
 		services.length,
 		index => {
 			const service = services[index];
@@ -30,15 +42,46 @@ export function Home({onSelect, onQuit, currentScreen}: HomeProps) {
 			}
 		},
 		onQuit,
-		currentScreen === 'home',
+		currentScreen !== 'home' ? false : true,
 	);
 
-	// Reset selectedIndex when returning to home screen
-	useEffect(() => {
-		if (currentScreen === 'home') {
-			setSelectedIndex(0);
+	// Handle cache clearing with separate useInput hook
+	useInput(
+		(input, _key) => {
+			// Handle cache clearing with 'C' or 'c' key
+			if (cacheContext && (input === 'C' || input === 'c')) {
+				setShowConfirmation(true);
+			}
+		},
+		{
+			// Follow the same pattern as useNavigation for test environment
+			isActive:
+				(currentScreen !== 'home' ? false : true) &&
+				(typeof process === 'undefined' || process.env['NODE_ENV'] !== 'test'),
+		},
+	);
+
+	const handleConfirmCache = () => {
+		if (cacheContext) {
+			cacheContext.clearCache();
 		}
-	}, [currentScreen, setSelectedIndex]);
+		setShowConfirmation(false);
+	};
+
+	const handleCancelCache = () => {
+		setShowConfirmation(false);
+	};
+
+	// Show confirmation dialog if requested
+	if (showConfirmation) {
+		return (
+			<ConfirmationDialog
+				message="Clear all cache?"
+				onConfirm={handleConfirmCache}
+				onCancel={handleCancelCache}
+			/>
+		);
+	}
 
 	return (
 		<Box flexDirection="column" padding={1}>
@@ -67,7 +110,10 @@ export function Home({onSelect, onQuit, currentScreen}: HomeProps) {
 				<Text color="yellow" bold>
 					Navigation:
 				</Text>
-				<Text color="gray">↑↓ Navigate • Enter Select • q Quit</Text>
+				<Text color="gray">
+					↑↓ Navigate • Enter Select • q Quit
+					{cacheContext && ' • C Clear cache'}
+				</Text>
 			</Box>
 		</Box>
 	);

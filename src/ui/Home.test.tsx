@@ -1,7 +1,18 @@
 import React from 'react';
-import {describe, it, expect} from 'vitest';
+import {describe, it, expect, vi} from 'vitest';
 import {render} from 'ink-testing-library';
+import {useInput} from 'ink';
 import {Home} from './Home.js';
+import {ResourceCacheProvider} from '../hooks/ResourceCacheContext.js';
+
+// Mock useInput hook for testing
+vi.mock('ink', async () => {
+	const actual = await vi.importActual('ink');
+	return {
+		...actual,
+		useInput: vi.fn(),
+	};
+});
 
 describe('Home', () => {
 	it('should render service menu title', () => {
@@ -77,5 +88,160 @@ describe('Home', () => {
 		// Component should render without errors and accept the callback
 		// Actual keyboard interaction testing is handled by the useNavigation hook tests
 		expect(selectedService).toBe('');
+	});
+
+	describe('cache clearing functionality', () => {
+		it('should show cache clearing instructions in help text', () => {
+			const {lastFrame} = render(
+				<ResourceCacheProvider>
+					<Home onSelect={() => {}} />
+				</ResourceCacheProvider>,
+			);
+			const output = lastFrame();
+
+			// Should show the 'C' key instruction when cache context is available
+			expect(output).toContain('C');
+			expect(output).toMatch(/[Cc]lear.*cache/i);
+		});
+
+		it('should handle C key press to show confirmation dialog', () => {
+			const mockUseInput = vi.mocked(useInput);
+			let capturedCallback: Function | null = null;
+
+			mockUseInput.mockImplementation(callback => {
+				capturedCallback = callback;
+			});
+
+			const {lastFrame} = render(
+				<ResourceCacheProvider>
+					<Home onSelect={() => {}} />
+				</ResourceCacheProvider>,
+			);
+
+			// Simulate 'C' key press
+			if (capturedCallback) {
+				capturedCallback('C', {});
+			}
+
+			const output = lastFrame();
+			// Should show confirmation dialog
+			expect(output).toContain('Clear all cache?');
+			expect(output).toContain('(y/N)');
+		});
+
+		it('should handle c key press to show confirmation dialog', () => {
+			const mockUseInput = vi.mocked(useInput);
+			let capturedCallback: Function | null = null;
+
+			mockUseInput.mockImplementation(callback => {
+				capturedCallback = callback;
+			});
+
+			const {lastFrame} = render(
+				<ResourceCacheProvider>
+					<Home onSelect={() => {}} />
+				</ResourceCacheProvider>,
+			);
+
+			// Simulate 'c' key press (lowercase)
+			if (capturedCallback) {
+				capturedCallback('c', {});
+			}
+
+			const output = lastFrame();
+			// Should show confirmation dialog
+			expect(output).toContain('Clear all cache?');
+			expect(output).toContain('(y/N)');
+		});
+
+		it('should not show cache clearing functionality without cache context', () => {
+			const {lastFrame} = render(<Home onSelect={() => {}} />);
+			const output = lastFrame();
+
+			// Should not show 'C' key instruction when cache context is not available
+			expect(output).not.toMatch(/[Cc]lear.*cache/i);
+		});
+
+		it('should confirm cache clearing and return to normal state', () => {
+			const mockUseInput = vi.mocked(useInput);
+			let capturedCallback: Function | null = null;
+
+			mockUseInput.mockImplementation(callback => {
+				capturedCallback = callback;
+			});
+
+			const {lastFrame} = render(
+				<ResourceCacheProvider>
+					<Home onSelect={() => {}} />
+				</ResourceCacheProvider>,
+			);
+
+			// First press 'C' to show confirmation
+			if (capturedCallback) {
+				capturedCallback('C', {});
+			}
+
+			expect(lastFrame()).toContain('Clear all cache?');
+
+			// Then press 'y' to confirm
+			if (capturedCallback) {
+				capturedCallback('y', {});
+			}
+
+			// Should return to normal home screen
+			const output = lastFrame();
+			expect(output).toContain('AWS Resource Browser');
+			expect(output).not.toContain('Clear all cache?');
+		});
+
+		it('should cancel cache clearing and return to normal state', () => {
+			const mockUseInput = vi.mocked(useInput);
+			let capturedCallback: Function | null = null;
+
+			mockUseInput.mockImplementation(callback => {
+				capturedCallback = callback;
+			});
+
+			const {lastFrame} = render(
+				<ResourceCacheProvider>
+					<Home onSelect={() => {}} />
+				</ResourceCacheProvider>,
+			);
+
+			// First press 'C' to show confirmation
+			if (capturedCallback) {
+				capturedCallback('C', {});
+			}
+
+			expect(lastFrame()).toContain('Clear all cache?');
+
+			// Then press 'n' to cancel
+			if (capturedCallback) {
+				capturedCallback('n', {});
+			}
+
+			// Should return to normal home screen
+			const output = lastFrame();
+			expect(output).toContain('AWS Resource Browser');
+			expect(output).not.toContain('Clear all cache?');
+		});
+
+		it('should use isActive option for useInput in test environment', () => {
+			const mockUseInput = vi.mocked(useInput);
+
+			render(
+				<ResourceCacheProvider>
+					<Home onSelect={() => {}} />
+				</ResourceCacheProvider>,
+			);
+
+			// Verify that useInput was called with isActive: false in test environment
+			expect(mockUseInput).toHaveBeenCalledWith(
+				expect.any(Function),
+				expect.objectContaining({
+					isActive: false,
+				}),
+			);
+		});
 	});
 });

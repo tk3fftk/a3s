@@ -1,6 +1,7 @@
 import {Provider} from './types.js';
 import {SdkProvider} from './sdk-provider.js';
 import {CliProvider} from './cli-provider.js';
+import {debugLog} from '../utils/debug.js';
 
 export type BackendType = 'sdk' | 'cli' | 'auto';
 
@@ -38,4 +39,11 @@ export class ProviderFactory {
 
 		return backend;
 	}
+}
+
+// Export a convenience function for useResources hook
+export async function createProvider(): Promise<Provider> {
+	const provider = ProviderFactory.create();
+	debugLog('Factory - Created provider:', provider.constructor.name);
+	return provider;
 }

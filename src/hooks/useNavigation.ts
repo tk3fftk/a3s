@@ -1,5 +1,6 @@
 import {useState, useEffect} from 'react';
 import {useInput} from 'ink';
+import {debugLog} from '../utils/debug.js';
 
 export function useNavigation(
 	itemCount: number,
@@ -9,20 +10,24 @@ export function useNavigation(
 ) {
 	const [selectedIndex, setSelectedIndex] = useState(0);
 
-	// Reset selectedIndex when becoming active
+	// Reset selectedIndex when becoming active or itemCount changes
 	useEffect(() => {
-		if (isActive && selectedIndex >= itemCount) {
-			setSelectedIndex(0);
+		if (isActive) {
+			// Reset to 0 if index is out of bounds or when first becoming active
+			setSelectedIndex(prev => {
+				if (prev >= itemCount) {
+					return 0;
+				}
+				return prev;
+			});
 		}
-	}, [isActive, itemCount, selectedIndex]);
+	}, [isActive, itemCount]);
 
 	// Always call useInput to follow React Hooks rules
 	useInput(
 		(input, key) => {
 			// Debug logging for input conflicts
-			if (process.env['NODE_ENV'] !== 'test') {
-				console.log(`useNavigation input: ${input}, isActive: ${isActive}`);
-			}
+			debugLog(`useNavigation input: ${input}, isActive: ${isActive}`);
 
 			if (key.upArrow || input === 'k') {
 				setSelectedIndex(prev => (prev === 0 ? itemCount - 1 : prev - 1));

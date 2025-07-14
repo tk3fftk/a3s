@@ -6,25 +6,26 @@ k9s 風の AWS リソースブラウザ TUI - Ink v4 と TypeScript で構築
 
 ### アーキテクチャ設計
 
-**プロジェクト構造**（完成時）:
+**プロジェクト構造**（現在の状態）:
 
 ```
 src/
-├── cli.tsx              # エントリーポイント
-├── app.tsx              # メインアプリケーション
+├── cli.tsx              # エントリーポイント ✅
+├── app.tsx              # メインアプリケーション ✅
 ├── providers/           # バックエンドプロバイダー ✅
 │   ├── types.ts         # Provider インターフェース ✅
-│   ├── sdk-provider.ts  # AWS SDK v3 実装 ✅
-│   ├── cli-provider.ts  # AWS CLI 実装 ✅
+│   ├── sdk-provider.ts  # AWS SDK v3 実装 ✅ (EC2のみ実装)
+│   ├── cli-provider.ts  # AWS CLI 実装 ✅ (EC2のみ実装)
 │   └── factory.ts       # プロバイダーファクトリー ✅
 ├── ui/                  # UI コンポーネント ✅
-│   ├── Home.tsx         # ホーム画面 ✅
-│   ├── ResourceList.tsx # リソース一覧 ✅
-│   ├── StatusBar.tsx    # ステータスバー ✅
-│   └── Table.tsx        # テーブル表示 ✅
-├── hooks/               # カスタムフック（未実装）
-│   └── useResources.ts  # リソース取得・更新
-├── utils/               # ユーティリティ（未実装）
+│   ├── home.tsx         # ホーム画面 ✅
+│   ├── resource-list.tsx # リソース一覧 ✅ (空データ表示)
+│   ├── status-bar.tsx    # ステータスバー ✅
+│   └── table.tsx        # テーブル表示 ✅
+├── hooks/               # カスタムフック
+│   └── useNavigation.ts # ナビゲーションフック ✅
+│   └── useResources.ts  # リソース取得・更新（未実装）❌
+├── utils/               # ユーティリティ（未実装）❌
 │   └── config.ts        # 環境変数管理
 └── types/               # 型定義 ✅
     └── resources.ts     # リソース型 ✅
@@ -63,25 +64,44 @@ src/
 
 - **Resources** (`src/types/resources.ts`): AWS リソース型定義
 
-### 5. Testing ✅
+### 5. Navigation System ✅
 
-- **テスト数**: 59 個のテストケース
+- **useNavigation Hook** (`src/hooks/useNavigation.ts`): キーボードナビゲーション
+- **矢印キー**: ↑↓ でメニュー選択移動
+- **Vim キー**: j/k でメニュー選択移動
+- **ラップアラウンド**: 最初 ↑ で最後へ、最後 ↓ で最初へ
+- **Enter**: 選択実行
+- **q**: 終了
+- **Escape/←**: 前画面へ戻る
+
+### 6. Testing ✅
+
+- **テスト数**: 59+ 個のテストケース (全て合格)
 - **カバレッジ**: 全コンポーネントとプロバイダー
 - **フレームワーク**: Vitest + ink-testing-library
 - **TDD**: 完全な TDD プロセスで開発済み
 
+### 7. Build & DevOps ✅
+
+- **Docker**: マルチステージビルド対応
+- **Docker Compose**: LocalStack 統合開発環境
+- **npm scripts**: 開発ワークフロー整備
+- **Linting**: oxlint による品質チェック
+- **Prettier**: コードフォーマット
+
 ## 現在の問題点
 
-### 1. エントリーポイントの不整合
+### 1. データ統合の欠如
 
-- **問題**: `source/` ディレクトリに古いボイラープレートが残存
-- **現状**: `source/app.tsx`と`source/cli.tsx`が古い"Hello World"実装
-- **解決策**: 新しいアーキテクチャに合わせてエントリーポイントを更新
+- **問題**: ResourceList コンポーネントは常に空の`data=[]`を表示
+- **原因**: `useResources`フックが未実装
+- **影響**: UI とナビゲーションは完成しているが、実際の AWS データが表示されない
 
-### 2. テストの小さな問題
+### 2. プロバイダーの部分的実装
 
-- **SDK Provider**: AWS EC2 クライアントのリージョン設定が未設定
-- **Integration Test**: エラーハンドリングの期待値が実際の動作と不一致
+- **EC2 のみ**: listInstances()メソッドのみ実装済み
+- **S3, Lambda, RDS**: NotImplementedYet エラーを返す
+- **SDK Provider**: デフォルトリージョン設定が欠如
 
 ## 技術スタック
 
@@ -118,20 +138,25 @@ src/
 
 ## 進捗状況
 
-### 完了済み (Phase 1-2)
+### 完了済み (Phase 1-3, 5)
 
-- [x] プロジェクト構造設計
-- [x] Provider アーキテクチャ実装
-- [x] UI コンポーネント実装
-- [x] テスト完備
+- [x] Phase 1: プロジェクト構造設計
+- [x] Phase 2: Provider アーキテクチャ実装
+- [x] Phase 2: UI コンポーネント実装
+- [x] Phase 3: エントリーポイントの統合
+- [x] Phase 5: キーボードナビゲーション実装
+- [x] テスト完備 (59+ テスト全て合格)
 - [x] 型定義完了
+- [x] Docker 開発環境
 
-### 次のステップ (Phase 3)
+### 次のステップ (Phase 4: データ統合)
 
-- [ ] エントリーポイントの統合
-- [ ] テストの問題修正
-- [ ] 実際の AWS リソース取得機能
-- [ ] キーボードナビゲーション実装
+- [ ] `useResources`フック実装 (データフェッチング)
+- [ ] 実際の AWS リソース取得・表示
+- [ ] ローディング状態とエラーハンドリング
+- [ ] S3, Lambda, RDS プロバイダー実装
+- [ ] データリフレッシュ機能
+- [ ] フィルタリング機能
 
 ## UI・UX 設計
 
@@ -170,4 +195,4 @@ src/
 
 ---
 
-_最終更新: 2025-07-06_
+_最終更新: 2025-07-10_
