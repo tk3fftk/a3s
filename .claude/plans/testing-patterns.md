@@ -484,3 +484,367 @@ Effective testing of Ink v4 applications requires:
 5. **Provide programmatic interfaces** for better testability
 
 These patterns enable comprehensive testing while avoiding common pitfalls specific to CLI application development.
+
+## 11. Advanced Integration Testing Patterns
+
+### Overview
+
+Integration testing for Ink v4 applications requires sophisticated mocking strategies to bridge the gap between component isolation and real keyboard interaction simulation. This section documents advanced patterns learned during navigation test fixes implementation.
+
+### Sophisticated useInput Mocking System
+
+#### The Challenge
+
+Standard component tests with simple `vi.fn()` mocks cannot simulate complex keyboard interactions across multiple components. App-level navigation requires:
+
+1. **Multiple input handlers**: Different components register their own `useInput` hooks
+2. **Handler coordination**: Determining which handler should respond to which key type
+3. **State synchronization**: Ensuring navigation state changes propagate correctly
+4. **Environment isolation**: Avoiding `stdin.ref` errors in test environment
+
+#### The Solution: Handler Collection and Selective Triggering
+
+```typescript
+// src/app.test.tsx - Advanced Integration Testing Setup
+
+let inputHandlers: Array<{callback: Function; options: any}> = [];
+
+vi.mock('ink', async () => {
+	const actual = await vi.importActual('ink');
+	return {
+		...actual,
+		useInput: vi.fn((callback, options = {}) => {
+			// Collect all active input handlers
+			if (options.isActive !== false) {
+				inputHandlers.push({callback, options});
+			}
+		}),
+	};
+});
+
+// Intelligent key routing based on interaction type
+const simulateKeyPress = (input: string, key: any = {}) => {
+	const activeHandlers = inputHandlers.filter(
+		handler => handler.options.isActive !== false,
+	);
+
+	// Selective handler triggering strategy:
+	// - Navigation keys (arrows, return): First handler (useNavigation hook)
+	// - Back navigation (leftArrow, escape): Last handler (Component-specific useInput)
+	// - Text input: All relevant handlers
+	let handlerToTrigger;
+	if (key.leftArrow || key.escape) {
+		// Back navigation typically handled by component-specific useInput
+		handlerToTrigger = activeHandlers.slice(-1);
+	} else {
+		// Navigation and selection handled by useNavigation hook (usually first)
+		handlerToTrigger = activeHandlers.slice(0, 1);
+	}
+
+	handlerToTrigger.forEach(handler => {
+		handler.callback(input, key);
+	});
+};
+
+// Clean state between tests
+const resetInputHandlers = () => {
+	inputHandlers = [];
+};
+```
+
+### Environment Variable Based Test Control
+
+#### Problem: Hook Behavior in Different Environments
+
+Components need different `useInput` behavior for:
+
+- **Component tests**: Mocked, no real input handling
+- **Integration tests**: Real navigation logic enabled
+- **Production**: Full keyboard interaction
+
+#### Solution: Conditional Hook Activation
+
+```typescript
+// Hook implementation with test-aware behavior
+export function useNavigation(
+	itemCount: number,
+	onSelect?: (index: number) => void,
+	onQuit?: () => void,
+	isActive: boolean = true,
+	allowTestInput: boolean = false,
+) {
+	useInput(
+		(input, key) => {
+			// Navigation logic
+		},
+		{
+			// Environment-aware activation
+			isActive:
+				isActive &&
+				(allowTestInput ||
+					typeof process === 'undefined' ||
+					process.env['NODE_ENV'] !== 'test'),
+		},
+	);
+}
+
+// Integration test setup
+describe('App Integration Tests', () => {
+	beforeEach(() => {
+		resetInputHandlers();
+		process.env['ENABLE_TEST_INPUT'] = 'true'; // Enable real navigation
+	});
+
+	afterEach(() => {
+		delete process.env['ENABLE_TEST_INPUT'];
+	});
+});
+
+// Component implementation with conditional enabling
+const {selectedIndex: navIndex} = useNavigation(
+	data.length,
+	undefined,
+	onQuit,
+	isActive,
+	// Only enable in integration tests, not component tests
+	typeof process !== 'undefined' && process.env['ENABLE_TEST_INPUT'] === 'true',
+);
+```
+
+### Integration Test Implementation Patterns
+
+#### Full Navigation Flow Testing
+
+```typescript
+it('should navigate through complete user journey', async () => {
+	const {lastFrame} = render(<App />);
+
+	// Wait for component initialization
+	await new Promise(resolve => setTimeout(resolve, 50));
+
+	// Step 1: Navigate to service
+	simulateKeyPress('', {downArrow: true});
+	await new Promise(resolve => setTimeout(resolve, 50));
+
+	// Step 2: Select service
+	simulateKeyPress('', {return: true});
+	await new Promise(resolve => setTimeout(resolve, 100));
+
+	// Step 3: Verify navigation result
+	expect(lastFrame()).toContain('S3 Buckets');
+
+	// Step 4: Navigate back
+	simulateKeyPress('', {leftArrow: true});
+	await new Promise(resolve => setTimeout(resolve, 100));
+
+	// Step 5: Verify return to home
+	expect(lastFrame()).toContain('AWS Resource Browser');
+});
+```
+
+#### Async State Management Testing
+
+```typescript
+it('should handle async navigation state changes', async () => {
+	const {lastFrame} = render(<App />);
+
+	// Wait for async handler registration
+	await new Promise(resolve => setTimeout(resolve, 50));
+
+	// Trigger navigation
+	simulateKeyPress('', {return: true});
+
+	// Wait for state propagation through React
+	await new Promise(resolve => setTimeout(resolve, 100));
+
+	// Verify state change
+	expect(lastFrame()).toContain('EC2 Instances');
+	// Allow for loading or data states
+	const output = lastFrame();
+	expect(output).toMatch(/No data available|Loading/);
+});
+```
+
+### Handler Registration Debugging
+
+#### Debug Pattern for Complex Handler Interactions
+
+```typescript
+const simulateKeyPress = (input: string, key: any = {}) => {
+	console.log(`Key: ${input}, handlers: ${inputHandlers.length}`);
+
+	const activeHandlers = inputHandlers.filter(
+		handler => handler.options.isActive !== false,
+	);
+
+	console.log(`Active handlers: ${activeHandlers.length}`);
+
+	// Log which handler will be triggered
+	let handlerToTrigger;
+	if (key.leftArrow || key.escape) {
+		handlerToTrigger = activeHandlers.slice(-1);
+		console.log('Triggering back navigation handler');
+	} else {
+		handlerToTrigger = activeHandlers.slice(0, 1);
+		console.log('Triggering navigation handler');
+	}
+
+	handlerToTrigger.forEach((handler, index) => {
+		console.log(`Executing handler ${index}`);
+		handler.callback(input, key);
+	});
+};
+```
+
+### Key Insights from Implementation
+
+1. **Handler Order Matters**: The order of hook registration determines which handler responds to different key types
+2. **State Timing**: React state updates require proper async waiting in tests
+3. **Environment Isolation**: Component tests and integration tests need different mocking strategies
+4. **Selective Triggering**: Different key types should trigger different handlers to avoid conflicts
+
+## 12. Test Strategy Decision Matrix
+
+### When to Use Each Testing Approach
+
+#### Integration Testing Checklist
+
+Use integration testing when:
+
+- [ ] **Cross-component navigation**: Testing flow between multiple screens
+- [ ] **Keyboard interaction workflows**: End-to-end user input scenarios
+- [ ] **State synchronization**: Verifying state changes across component boundaries
+- [ ] **App-level behavior**: Testing overall application behavior
+- [ ] **Real user journeys**: Simulating actual user interaction patterns
+
+**Setup Requirements**:
+
+- Environment variable control (`ENABLE_TEST_INPUT=true`)
+- Sophisticated useInput mocking
+- Async state change handling
+- Handler collection and selective triggering
+
+#### Component Testing Checklist
+
+Use component testing when:
+
+- [ ] **Rendering verification**: Testing component structure and content
+- [ ] **Props handling**: Verifying component responds to different props
+- [ ] **Isolated behavior**: Testing component logic without external dependencies
+- [ ] **Visual state**: Testing what user sees (highlighting, text content)
+- [ ] **Error boundaries**: Testing component error handling
+
+**Setup Requirements**:
+
+- Simple mocking (`vi.fn()`)
+- Focus on `lastFrame()` output
+- Avoid keyboard simulation
+- Test prop variations
+
+#### Hook Testing Checklist
+
+Use hook testing when:
+
+- [ ] **Business logic**: Testing navigation algorithms and state management
+- [ ] **Edge cases**: Testing boundary conditions (wraparound, limits)
+- [ ] **Callback handling**: Verifying function calls and parameters
+- [ ] **State transitions**: Testing state change logic
+- [ ] **Performance**: Testing hook behavior with large datasets
+
+**Setup Requirements**:
+
+- `@testing-library/react` with `renderHook`
+- `jsdom` environment
+- `act()` for state changes
+- Mock external dependencies
+
+### Decision Flow Chart
+
+```
+User Interaction Testing Needed?
+├─ Yes: Multi-component flow?
+│  ├─ Yes: Integration Testing
+│  └─ No: Component Testing
+└─ No: Business logic only?
+   ├─ Yes: Hook Testing
+   └─ No: Component Testing
+```
+
+### Test Coverage Strategy
+
+#### Comprehensive Coverage Approach
+
+1. **Hook Tests** (30%): Core business logic
+
+   - Navigation algorithms
+   - State management
+   - Callback handling
+
+2. **Component Tests** (50%): Structure and rendering
+
+   - UI rendering
+   - Props handling
+   - Content verification
+
+3. **Integration Tests** (20%): User workflows
+   - Navigation flows
+   - Cross-component interaction
+   - End-to-end scenarios
+
+#### Quality Metrics
+
+- **Test Success Rate**: Target 98%+ (current: 98.3%)
+- **Coverage Completeness**: All three test types for complex features
+- **Maintenance Efficiency**: No duplicate test logic
+- **Development Speed**: Fast feedback with watch mode
+
+### Implementation Guidelines
+
+#### Step-by-Step Implementation
+
+1. **Start with Hook Tests**:
+
+   ```typescript
+   // Test business logic first
+   const {result} = renderHook(() => useNavigation(4));
+   act(() => result.current.moveDown());
+   expect(result.current.selectedIndex).toBe(1);
+   ```
+
+2. **Add Component Tests**:
+
+   ```typescript
+   // Test rendering and structure
+   const {lastFrame} = render(<Home onSelect={() => {}} />);
+   expect(lastFrame()).toContain('EC2');
+   ```
+
+3. **Implement Integration Tests**:
+
+   ```typescript
+   // Test user workflows
+   simulateKeyPress('', {downArrow: true});
+   await new Promise(resolve => setTimeout(resolve, 50));
+   simulateKeyPress('', {return: true});
+   ```
+
+4. **Verify Coverage**:
+   - All three test types passing
+   - No duplicate logic
+   - Clear test intent
+
+### Anti-Patterns to Avoid
+
+#### ❌ Wrong Test Strategy Choices
+
+- **Don't**: Use integration testing for simple component rendering
+- **Don't**: Use component testing for cross-component navigation
+- **Don't**: Use hook testing for UI structure verification
+- **Don't**: Mix testing strategies within the same test file
+
+#### ✅ Correct Test Strategy Application
+
+- **Do**: Match test type to what you're actually testing
+- **Do**: Use the simplest effective testing approach
+- **Do**: Separate concerns between test types
+- **Do**: Document why you chose each testing strategy
