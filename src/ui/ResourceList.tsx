@@ -49,6 +49,9 @@ export function ResourceList({
 		undefined, // onSelect not needed yet
 		onQuit,
 		isActive,
+		// Only allow test input for App integration tests, not component tests
+		typeof process !== 'undefined' &&
+			process.env['ENABLE_TEST_INPUT'] === 'true',
 	);
 
 	const getResourceTitle = (type: string) => {

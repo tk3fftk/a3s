@@ -7,6 +7,7 @@ export function useNavigation(
 	onSelect?: (index: number) => void,
 	onQuit?: () => void,
 	isActive: boolean = true,
+	allowTestInput: boolean = false,
 ) {
 	const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -43,11 +44,13 @@ export function useNavigation(
 			}
 		},
 		{
-			// Disable input in test environment to avoid stdin.ref errors
+			// Disable input in test environment to avoid stdin.ref errors, unless allowTestInput is true
 			// Also disable when not active to prevent input conflicts
 			isActive:
 				isActive &&
-				(typeof process === 'undefined' || process.env['NODE_ENV'] !== 'test'),
+				(allowTestInput ||
+					typeof process === 'undefined' ||
+					process.env['NODE_ENV'] !== 'test'),
 		},
 	);
 

@@ -43,6 +43,7 @@ export function Home({onSelect, onQuit, currentScreen}: HomeProps) {
 		},
 		onQuit,
 		currentScreen !== 'home' ? false : true,
+		true, // allowTestInput for integration tests
 	);
 
 	// Handle cache clearing with separate useInput hook
